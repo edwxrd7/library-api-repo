@@ -8,7 +8,7 @@ info:
 servers:
   - url: http://localhost:3000
     description: Local development servers
-  - url: https://task-api-service-yymd.onrender.com
+  - url: https://library-api-service-49va.onrender.com
     description: Production server
 
 tags:
