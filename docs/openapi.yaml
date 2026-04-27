@@ -22,7 +22,7 @@ tags:
     description: Operations related to checkouts and returns
 
 paths:
-  /auth/signup:
+  /api/auth/signup:
     post:
       tags:
         - Auth
@@ -45,7 +45,7 @@ paths:
         '409':
           $ref: '#/components/responses/DuplicateEmail'
 
-  /auth/login:
+  /api/auth/login:
     post:
       tags:
         - Auth
@@ -72,7 +72,7 @@ paths:
         '401':
           $ref: '#/components/responses/InvalidCredentials'
 
-  /books:
+  /api/books:
     get:
       tags:
         - Books
@@ -124,7 +124,7 @@ paths:
         '409':
           $ref: '#/components/responses/DuplicateBook'
 
-  /books/{id}:
+  /api/books/{id}:
     get:
       tags:
         - Books
@@ -207,7 +207,7 @@ paths:
         '404':
           $ref: '#/components/responses/BookNotFound'
 
-  /genres:
+  /api/genres:
     get:
       tags:
         - Genres
@@ -255,7 +255,7 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 
-  /genres/{id}:
+  /api/genres/{id}:
     get:
       tags:
         - Genres
@@ -321,7 +321,7 @@ paths:
         '404':
           $ref: '#/components/responses/GenreNotFound'
 
-  /checkedout:
+  /api/checkedout:
     get:
       security:
         - bearerAuth: []
@@ -379,7 +379,7 @@ paths:
         '409':
           $ref: '#/components/responses/AlreadyCheckedOut'
 
-  /checkedout/me:
+  /api/checkedout/me:
     get:
       security:
         - bearerAuth: []
@@ -399,7 +399,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /checkedout/{id}:
+  /api/checkedout/{id}:
     get:
       security:
         - bearerAuth: []
