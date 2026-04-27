@@ -46,6 +46,13 @@ app.use('/api/books', bookRoutes);
 app.use('/api/genres', genreRoutes);
 app.use('/api/checkedout', checkedOutRoutes);
 
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Library API is running',
+    docs: '/api-docs',
+    health: '/health',
+  });
+});
 /*
   404 handler
 */
