@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+id Int @id @default(autoincrement())
+email String @unique
+password String
+role Role @default(USER)
+checkouts CheckedOut[]
+@@map("users")
+}
+
+model Book {
+id Int @id @default(autoincrement())
+title String
+author String
+yearPublished Int
+genreId Int @map("genre_id")
+genre Genre @relation(fields: [genreId], references: [id], onDelete: Cascade)
+checkouts CheckedOut[]
+
+@@unique([title, author])
+@@map("books")
+}
+
+model Genre {
+  id Int @id @default(autoincrement())
+  name String
+  books Book[]
+
+  @@map("genres")
+}
+
+model CheckedOut {
+id Int @id @default(autoincrement())
+  checkoutDate DateTime @default(now()) @map("checkout_date")
+  dueDate      DateTime @map("due_date")
+  returned     Boolean  @default(false)
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int      @map("user_id")
+
+  book         Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId       Int      @map("book_id")
+
+  @@map("checked_out")
+}
+
+enum Role {
+  USER
+  ADMIN
+}

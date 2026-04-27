@@ -1,0 +1,1133 @@
+openapi: 3.0.3
+
+info:
+  title: Library API
+  version: 1.0.0
+  description: API documentation for the Library API
+
+servers:
+  - url: http://localhost:3000/api
+
+tags:
+  - name: Auth
+    description: User authentication endpoints
+  - name: Books
+    description: Operations related to books
+  - name: Genres
+    description: Operations related to genres
+  - name: Checkouts
+    description: Operations related to checkouts and returns
+
+paths:
+  /auth/signup:
+    post:
+      tags:
+        - Auth
+      summary: Register a new user
+      description: Create a new user account with email and password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpRequest'
+            example:
+              email: newuser@example.com
+              password: password123
+      responses:
+        '201':
+          $ref: '#/components/responses/UserCreated'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          $ref: '#/components/responses/DuplicateEmail'
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Authenticate user
+      description: Authenticate a user and return an access token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: admin@test.com
+              password: admin1234
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+
+  /books:
+    get:
+      tags:
+        - Books
+      summary: Get all books
+      description: Retrieve a paginated list of books.
+      parameters:
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/SortByBooks'
+        - $ref: '#/components/parameters/Order'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A list of books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookWithGenre'
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - Books
+      summary: Create a new book
+      description: Create a new book. Admin only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBookRequest'
+      responses:
+        '201':
+          description: Book successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/GenreNotFound'
+        '409':
+          $ref: '#/components/responses/DuplicateBook'
+
+  /books/{id}:
+    get:
+      tags:
+        - Books
+      summary: Get book by ID
+      description: Retrieve a single book by its ID.
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: A single book
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookWithGenre'
+        '400':
+          $ref: '#/components/responses/InvalidId'
+        '404':
+          $ref: '#/components/responses/BookNotFound'
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - Books
+      summary: Update a book
+      description: Update a book. Admin only.
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBookRequest'
+            example:
+              title: Dune Messiah
+      responses:
+        '200':
+          description: Book successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '400':
+          $ref: '#/components/responses/InvalidId'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Book or genre not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                bookNotFound:
+                  value:
+                    error: 'Book with id: 1 not found'
+                genreNotFound:
+                  value:
+                    error: 'Genre with id: 99 not found'
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - Books
+      summary: Delete a book
+      description: Delete a book by ID. Admin only.
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '204':
+          description: Book deleted successfully
+        '400':
+          $ref: '#/components/responses/InvalidId'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/BookNotFound'
+
+  /genres:
+    get:
+      tags:
+        - Genres
+      summary: Get all genres
+      description: Retrieve a paginated list of genres.
+      parameters:
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/SortByGenres'
+        - $ref: '#/components/parameters/Order'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A list of genres
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Genre'
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - Genres
+      summary: Create a genre
+      description: Create a genre. Admin only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenreRequest'
+      responses:
+        '201':
+          description: Genre successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Genre'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /genres/{id}:
+    get:
+      tags:
+        - Genres
+      summary: Get genre by ID
+      description: Retrieve a single genre by its ID.
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: A single genre
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Genre'
+        '404':
+          $ref: '#/components/responses/GenreNotFound'
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - Genres
+      summary: Update a genre
+      description: Update a genre by ID. Admin only.
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenreRequest'
+      responses:
+        '200':
+          description: Genre successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Genre'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/GenreNotFound'
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - Genres
+      summary: Delete a genre
+      description: Delete a genre by ID. Admin only.
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '204':
+          description: Genre deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/GenreNotFound'
+
+  /checkedout:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - Checkouts
+      summary: Get all active checkouts
+      description: Retrieve all active checkouts (any authenticated user can access this endpoint).
+      responses:
+        '200':
+          description: A list of active checkouts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CheckoutListItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - Checkouts
+      summary: Create a checkout
+      description: Checkout a book for authenticated user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCheckoutRequest'
+      responses:
+        '201':
+          description: Checkout successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutCreatedResponse'
+              example:
+                id: 10
+                checkoutDate: '2026-04-27'
+                dueDate: '2026-05-11'
+                returned: false
+                userId: 2
+                bookId: 1
+                book:
+                  title: Dune
+                  author: Frank Herbert
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/BookNotFound'
+        '409':
+          $ref: '#/components/responses/AlreadyCheckedOut'
+
+  /checkedout/me:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - Checkouts
+      summary: Get my active checkouts
+      description: Retrieve active checkouts for the authenticated user.
+      responses:
+        '200':
+          description: A list of the current user's active checkouts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MyCheckout'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /checkedout/{id}:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - Checkouts
+      summary: Get checkout by ID
+      description: Retrieve a checkout by ID. Admin only.
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: A single checkout record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutDetail'
+        '400':
+          $ref: '#/components/responses/InvalidCheckoutId'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/CheckoutNotFound'
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - Checkouts
+      summary: Extend checkout due date by 14 days
+      description: Extend a checkout due date by 14 days. Admin only. This endpoint does not accept a request body.
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Checkout due date successfully extended by 14 days
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutUpdatedResponse'
+              example:
+                id: 10
+                checkoutDate: '2026-04-27'
+                dueDate: '2026-05-15'
+                returned: false
+                userId: 2
+                bookId: 1
+                book:
+                  title: Dune
+                  author: Frank Herbert
+                message: Due date extended successfully
+        '400':
+          description: Invalid checkout ID or disallowed dueDate field
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+              example:
+                errors:
+                  - Checkout ID must be a positive integer
+                  - Due date cannot be provided; this endpoint always extends by 14 days
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/CheckoutNotFound'
+        '409':
+          $ref: '#/components/responses/AlreadyReturned'
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - Checkouts
+      summary: Return a checked out book
+      description: Return a checkout by ID. Admin can return any checkout; users can return only their own.
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Book successfully returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReturnBookResponse'
+        '400':
+          $ref: '#/components/responses/InvalidCheckoutId'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/ForbiddenOwnCheckout'
+        '404':
+          $ref: '#/components/responses/CheckoutNotFound'
+        '409':
+          $ref: '#/components/responses/AlreadyReturned'
+
+components:
+  schemas:
+    Role:
+      type: string
+      enum:
+        - USER
+        - ADMIN
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    ValidationErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: string
+      required:
+        - errors
+
+    SignUpRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          maxLength: 64
+        role:
+          $ref: '#/components/schemas/Role'
+      required:
+        - email
+        - password
+
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        role:
+          $ref: '#/components/schemas/Role'
+      required:
+        - id
+        - email
+        - role
+
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+        - accessToken
+        - user
+
+    Genre:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Science Fiction
+      required:
+        - id
+        - name
+
+    GenreRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: Mystery
+      required:
+        - name
+
+    Book:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Dune
+        author:
+          type: string
+          example: Frank Herbert
+        yearPublished:
+          type: integer
+          example: 1965
+        genreId:
+          type: integer
+          example: 1
+      required:
+        - id
+        - title
+        - author
+        - yearPublished
+        - genreId
+
+    BookWithGenre:
+      allOf:
+        - $ref: '#/components/schemas/Book'
+        - type: object
+          properties:
+            genre:
+              $ref: '#/components/schemas/Genre'
+          required:
+            - genre
+
+    CreateBookRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 3
+          example: Dune
+        author:
+          type: string
+          minLength: 3
+          example: Frank Herbert
+        yearPublished:
+          type: integer
+          minimum: 1000
+          example: 1965
+        genreId:
+          type: integer
+          minimum: 1
+          example: 1
+      required:
+        - title
+        - author
+        - yearPublished
+        - genreId
+
+    UpdateBookRequest:
+      type: object
+      description: Partial update payload. Provide only the fields you want to change.
+      example:
+        title: Dune Messiah
+      properties:
+        title:
+          type: string
+        author:
+          type: string
+        yearPublished:
+          type: integer
+        genreId:
+          type: integer
+          minimum: 1
+
+    CheckoutBookSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Dune
+        author:
+          type: string
+          example: Frank Herbert
+      required:
+        - id
+        - title
+        - author
+
+    CheckoutListItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 10
+        checkoutDate:
+          type: string
+          format: date-time
+          example: '2026-04-26'
+        dueDate:
+          type: string
+          format: date-time
+          example: '2026-05-10'
+        returned:
+          type: boolean
+          example: false
+        userId:
+          type: integer
+          example: 2
+        bookId:
+          type: integer
+          example: 1
+        book:
+          $ref: '#/components/schemas/CheckoutBookSummary'
+      required:
+        - id
+        - checkoutDate
+        - dueDate
+        - returned
+        - userId
+        - bookId
+        - book
+
+    CheckoutBook:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Dune
+        author:
+          type: string
+          example: Frank Herbert
+        yearPublished:
+          type: integer
+          example: 1965
+        genreId:
+          type: integer
+          example: 1
+      required:
+        - id
+        - title
+        - author
+        - yearPublished
+        - genreId
+
+    CheckoutUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 2
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        role:
+          $ref: '#/components/schemas/Role'
+      required:
+        - id
+        - email
+        - role
+
+    CheckoutDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 10
+        checkoutDate:
+          type: string
+          format: date
+          example: '2026-04-26'
+        dueDate:
+          type: string
+          format: date
+          example: '2026-05-10'
+        returned:
+          type: boolean
+          example: false
+        userId:
+          type: integer
+          example: 2
+        bookId:
+          type: integer
+          example: 1
+        book:
+          $ref: '#/components/schemas/CheckoutBook'
+        user:
+          $ref: '#/components/schemas/CheckoutUser'
+      required:
+        - id
+        - checkoutDate
+        - dueDate
+        - returned
+        - userId
+        - bookId
+        - book
+        - user
+
+    CheckoutCreatedOrUpdated:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 10
+        checkoutDate:
+          type: string
+          format: date
+          example: '2026-04-26'
+        dueDate:
+          type: string
+          format: date
+          example: '2026-05-10'
+        returned:
+          type: boolean
+          example: false
+        userId:
+          type: integer
+          example: 2
+        bookId:
+          type: integer
+          example: 1
+      required:
+        - id
+        - checkoutDate
+        - dueDate
+        - returned
+        - userId
+        - bookId
+
+    CheckoutMutationBook:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Dune
+        author:
+          type: string
+          example: Frank Herbert
+      required:
+        - title
+        - author
+
+    CheckoutCreatedResponse:
+      allOf:
+        - $ref: '#/components/schemas/CheckoutCreatedOrUpdated'
+        - type: object
+          properties:
+            book:
+              $ref: '#/components/schemas/CheckoutMutationBook'
+          required:
+            - book
+
+    CheckoutUpdatedResponse:
+      allOf:
+        - $ref: '#/components/schemas/CheckoutCreatedResponse'
+        - type: object
+          properties:
+            message:
+              type: string
+              example: Due date extended successfully
+          required:
+            - message
+
+    MyCheckout:
+      allOf:
+        - $ref: '#/components/schemas/CheckoutCreatedOrUpdated'
+        - type: object
+          properties:
+            book:
+              $ref: '#/components/schemas/CheckoutBook'
+          required:
+            - book
+
+    CreateCheckoutRequest:
+      type: object
+      properties:
+        bookId:
+          type: integer
+          minimum: 1
+          example: 1
+      required:
+        - bookId
+
+    ReturnBookResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Book successfully returned
+        checkoutId:
+          type: integer
+          example: 10
+        bookId:
+          type: integer
+          example: 1
+        returned:
+          type: boolean
+          example: true
+      required:
+        - message
+        - checkoutId
+        - bookId
+        - returned
+
+  parameters:
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      description: Resource ID
+      schema:
+        type: integer
+        minimum: 1
+        example: 1
+
+    Search:
+      name: search
+      in: query
+      required: false
+      description: Filter records by text.
+      schema:
+        type: string
+
+    SortByBooks:
+      name: sortBy
+      in: query
+      required: false
+      description: Field used to sort books.
+      schema:
+        type: string
+        enum:
+          - title
+          - author
+          - yearPublished
+          - id
+          - genreId
+
+    SortByGenres:
+      name: sortBy
+      in: query
+      required: false
+      description: Field used to sort genres.
+      schema:
+        type: string
+        enum:
+          - id
+          - name
+
+    Order:
+      name: order
+      in: query
+      required: false
+      description: Sort direction for results.
+      schema:
+        type: string
+        enum:
+          - asc
+          - desc
+
+    Offset:
+      name: offset
+      in: query
+      required: false
+      description: Number of records to skip before returning results.
+      schema:
+        type: integer
+        minimum: 0
+
+    Limit:
+      name: limit
+      in: query
+      required: false
+      description: Maximum number of records to return.
+      schema:
+        type: integer
+        minimum: 1
+
+  responses:
+    ValidationError:
+      description: Bad request due to invalid request data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+          example:
+            errors:
+              - Email is required
+
+    InvalidId:
+      description: Invalid ID parameter
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+          example:
+            errors:
+              - ID must be a positive integer
+
+    InvalidCheckoutId:
+      description: Invalid checkout ID parameter
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+          example:
+            errors:
+              - Checkout ID must be a positive integer
+
+    Unauthorized:
+      description: Client is not authenticated
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Not authenticated. Please provide a valid token.
+
+    Forbidden:
+      description: Client is not authorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: 'Forbidden: insufficient permission'
+
+    ForbiddenOwnCheckout:
+      description: User attempted to return another user's checkout
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: 'Forbidden: you can only return your own books'
+
+    InvalidCredentials:
+      description: Invalid login credentials
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Invalid credentials
+
+    DuplicateEmail:
+      description: Email already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Email has already been used
+
+    DuplicateBook:
+      description: Book already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: This book already exists
+
+    UserCreated:
+      description: Signed up successfully
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+          example:
+            id: 1
+            email: newuser@example.com
+            role: USER
+
+    BookNotFound:
+      description: Book not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: 'Book with id: 1 not found'
+
+    GenreNotFound:
+      description: Genre not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: 'Genre with id: 1 not found'
+
+    CheckoutNotFound:
+      description: Checkout not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: 'Checkout with id: 10 not found'
+
+    AlreadyCheckedOut:
+      description: Book is already checked out
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: This book is already checked out
+
+    AlreadyReturned:
+      description: Book has already been returned
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Book has already been returned
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
