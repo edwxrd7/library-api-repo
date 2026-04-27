@@ -3,6 +3,7 @@ import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import yaml from 'js-yaml';
 import fs from 'fs';
+import cors from 'cors';
 
 import authRoutes from './routes/authRoutes.js';
 import bookRoutes from './routes/bookRoutes.js';
@@ -13,6 +14,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(cors());
 
 if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('tiny'));
@@ -32,7 +34,9 @@ try {
 }
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
-
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 /*
   Routes 
 */
