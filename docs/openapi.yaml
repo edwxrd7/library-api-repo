@@ -6,7 +6,10 @@ info:
   description: API documentation for the Library API
 
 servers:
-  - url: http://localhost:3000/api
+  - url: http://localhost:3000
+    description: Local development servers
+  - url: https://task-api-service-yymd.onrender.com
+    description: Production server
 
 tags:
   - name: Auth
