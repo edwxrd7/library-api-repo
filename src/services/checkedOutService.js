@@ -10,6 +10,26 @@ import {
 
 import { getById as getBookById } from '../repositories/bookRepo.js';
 
+function formatDate(date) {
+  if (!date) return null;
+
+  const normalizedDate = date instanceof Date ? date : new Date(date);
+  return normalizedDate.toISOString().split('T')[0];
+}
+
+function formatCheckoutResponse(checkout) {
+  return {
+    id: checkout.id,
+    checkoutDate: formatDate(checkout.checkoutDate),
+    dueDate: formatDate(checkout.dueDate),
+    status: checkout.returned ? 'Returned' : 'Checked Out',
+    book: {
+      title: checkout.book?.title ?? null,
+      author: checkout.book?.author ?? null,
+    },
+  };
+}
+
 export async function createCheckout(userId, bookId) {
   // Check if book exists
   const book = await getBookById(bookId);
@@ -84,7 +104,8 @@ export async function updateCheckout(id) {
 }
 
 export async function getAllCheckouts() {
-  return getAll();
+  const checkouts = await getAll();
+  return checkouts.map(formatCheckoutResponse);
 }
 
 export async function returnBook(id, userId, userRole) {
