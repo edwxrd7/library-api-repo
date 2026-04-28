@@ -56,12 +56,7 @@ export async function updateCheckoutHandler(req, res) {
   const { id } = req.params;
   const updatedCheckout = await updateCheckout(id);
 
-  res.status(200).json({
-    ...updatedCheckout,
-    checkoutDate: formatDate(updatedCheckout.checkoutDate),
-    dueDate: formatDate(updatedCheckout.dueDate),
-    message: 'Due date extended successfully',
-  });
+  res.status(200).json(updatedCheckout);
 }
 
 export async function returnBookHandler(req, res) {

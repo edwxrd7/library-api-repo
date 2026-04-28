@@ -463,14 +463,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/CheckoutUpdatedResponse'
               example:
-                id: 10
-                checkoutDate: '2026-04-27'
-                dueDate: '2026-05-15'
-                status: Checked Out
-                book:
-                  title: Dune
-                  author: Frank Herbert
                 message: Due date extended successfully
+                book:
+                  title: The Book of Bill
+                  author: Alex Hirsch
+                previousDueDate: '2026-05-12'
+                newDueDate: '2026-05-26'
         '400':
           description: Invalid checkout ID or disallowed dueDate field
           content:
@@ -772,15 +770,26 @@ components:
       $ref: '#/components/schemas/CheckoutListItem'
 
     CheckoutUpdatedResponse:
-      allOf:
-        - $ref: '#/components/schemas/CheckoutCreatedResponse'
-        - type: object
-          properties:
-            message:
-              type: string
-              example: Due date extended successfully
-          required:
-            - message
+      type: object
+      properties:
+        message:
+          type: string
+          example: Due date extended successfully
+        book:
+          $ref: '#/components/schemas/CheckoutBookSummary'
+        previousDueDate:
+          type: string
+          format: date
+          example: '2026-05-12'
+        newDueDate:
+          type: string
+          format: date
+          example: '2026-05-26'
+      required:
+        - message
+        - book
+        - previousDueDate
+        - newDueDate
 
     MyCheckout:
       $ref: '#/components/schemas/CheckoutListItem'

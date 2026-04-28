@@ -91,12 +91,23 @@ export async function updateCheckout(id) {
 
   const nextDueDate = new Date(existingCheckout.dueDate ?? Date.now());
   nextDueDate.setDate(nextDueDate.getDate() + 14);
+  const previousDueDate = existingCheckout.dueDate;
 
   const updatedCheckout = await update(id, {
     dueDate: nextDueDate,
   });
 
-  if (updatedCheckout) return updatedCheckout;
+  if (updatedCheckout) {
+    return {
+      message: 'Due date extended successfully',
+      book: {
+        title: updatedCheckout.book?.title ?? null,
+        author: updatedCheckout.book?.author ?? null,
+      },
+      previousDueDate: formatDate(previousDueDate),
+      newDueDate: formatDate(updatedCheckout.dueDate),
+    };
+  }
 
   const error = new Error(`Checkout with id: ${id} not found`);
   error.status = 404;
