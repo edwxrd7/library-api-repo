@@ -338,6 +338,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/CheckoutListItem'
+              example:
+                - id: 10
+                  checkoutDate: '2026-04-26'
+                  dueDate: '2026-05-10'
+                  status: Checked Out
+                  book:
+                    title: Dune
+                    author: Frank Herbert
         '401':
           $ref: '#/components/responses/Unauthorized'
     post:
@@ -364,9 +372,7 @@ paths:
                 id: 10
                 checkoutDate: '2026-04-27'
                 dueDate: '2026-05-11'
-                returned: false
-                userId: 2
-                bookId: 1
+                status: Checked Out
                 book:
                   title: Dune
                   author: Frank Herbert
@@ -396,6 +402,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/MyCheckout'
+              example:
+                - id: 10
+                  checkoutDate: '2026-04-27'
+                  dueDate: '2026-05-11'
+                  status: Checked Out
+                  book:
+                    title: Dune
+                    author: Frank Herbert
         '401':
           $ref: '#/components/responses/Unauthorized'
 
@@ -416,6 +430,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CheckoutDetail'
+              example:
+                id: 10
+                checkoutDate: '2026-04-27'
+                dueDate: '2026-05-11'
+                status: Checked Out
+                book:
+                  title: Dune
+                  author: Frank Herbert
         '400':
           $ref: '#/components/responses/InvalidCheckoutId'
         '401':
@@ -444,9 +466,7 @@ paths:
                 id: 10
                 checkoutDate: '2026-04-27'
                 dueDate: '2026-05-15'
-                returned: false
-                userId: 2
-                bookId: 1
+                status: Checked Out
                 book:
                   title: Dune
                   author: Frank Herbert
@@ -485,6 +505,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReturnBookResponse'
+              example:
+                message: Book successfully returned
+                checkout:
+                  id: 10
+                  checkoutDate: '2026-04-27'
+                  dueDate: '2026-05-11'
+                  status: Returned
+                  book:
+                    title: Dune
+                    author: Frank Herbert
         '400':
           $ref: '#/components/responses/InvalidCheckoutId'
         '401':
@@ -682,9 +712,6 @@ components:
     CheckoutBookSummary:
       type: object
       properties:
-        id:
-          type: integer
-          example: 1
         title:
           type: string
           example: Dune
@@ -692,7 +719,6 @@ components:
           type: string
           example: Frank Herbert
       required:
-        - id
         - title
         - author
 
@@ -704,141 +730,30 @@ components:
           example: 10
         checkoutDate:
           type: string
-          format: date-time
+          format: date
           example: '2026-04-26'
         dueDate:
           type: string
-          format: date-time
+          format: date
           example: '2026-05-10'
-        returned:
-          type: boolean
-          example: false
-        userId:
-          type: integer
-          example: 2
-        bookId:
-          type: integer
-          example: 1
+        status:
+          type: string
+          enum: [Checked Out, Returned]
+          example: Checked Out
         book:
           $ref: '#/components/schemas/CheckoutBookSummary'
       required:
         - id
         - checkoutDate
         - dueDate
-        - returned
-        - userId
-        - bookId
+        - status
         - book
-
-    CheckoutBook:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 1
-        title:
-          type: string
-          example: Dune
-        author:
-          type: string
-          example: Frank Herbert
-        yearPublished:
-          type: integer
-          example: 1965
-        genreId:
-          type: integer
-          example: 1
-      required:
-        - id
-        - title
-        - author
-        - yearPublished
-        - genreId
-
-    CheckoutUser:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 2
-        email:
-          type: string
-          format: email
-          example: user@example.com
-        role:
-          $ref: '#/components/schemas/Role'
-      required:
-        - id
-        - email
-        - role
 
     CheckoutDetail:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 10
-        checkoutDate:
-          type: string
-          format: date
-          example: '2026-04-26'
-        dueDate:
-          type: string
-          format: date
-          example: '2026-05-10'
-        returned:
-          type: boolean
-          example: false
-        userId:
-          type: integer
-          example: 2
-        bookId:
-          type: integer
-          example: 1
-        book:
-          $ref: '#/components/schemas/CheckoutBook'
-        user:
-          $ref: '#/components/schemas/CheckoutUser'
-      required:
-        - id
-        - checkoutDate
-        - dueDate
-        - returned
-        - userId
-        - bookId
-        - book
-        - user
+      $ref: '#/components/schemas/CheckoutListItem'
 
     CheckoutCreatedOrUpdated:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 10
-        checkoutDate:
-          type: string
-          format: date
-          example: '2026-04-26'
-        dueDate:
-          type: string
-          format: date
-          example: '2026-05-10'
-        returned:
-          type: boolean
-          example: false
-        userId:
-          type: integer
-          example: 2
-        bookId:
-          type: integer
-          example: 1
-      required:
-        - id
-        - checkoutDate
-        - dueDate
-        - returned
-        - userId
-        - bookId
+      $ref: '#/components/schemas/CheckoutListItem'
 
     CheckoutMutationBook:
       type: object
@@ -854,14 +769,7 @@ components:
         - author
 
     CheckoutCreatedResponse:
-      allOf:
-        - $ref: '#/components/schemas/CheckoutCreatedOrUpdated'
-        - type: object
-          properties:
-            book:
-              $ref: '#/components/schemas/CheckoutMutationBook'
-          required:
-            - book
+      $ref: '#/components/schemas/CheckoutListItem'
 
     CheckoutUpdatedResponse:
       allOf:
@@ -875,14 +783,7 @@ components:
             - message
 
     MyCheckout:
-      allOf:
-        - $ref: '#/components/schemas/CheckoutCreatedOrUpdated'
-        - type: object
-          properties:
-            book:
-              $ref: '#/components/schemas/CheckoutBook'
-          required:
-            - book
+      $ref: '#/components/schemas/CheckoutListItem'
 
     CreateCheckoutRequest:
       type: object
@@ -900,20 +801,11 @@ components:
         message:
           type: string
           example: Book successfully returned
-        checkoutId:
-          type: integer
-          example: 10
-        bookId:
-          type: integer
-          example: 1
-        returned:
-          type: boolean
-          example: true
+        checkout:
+          $ref: '#/components/schemas/CheckoutListItem'
       required:
         - message
-        - checkoutId
-        - bookId
-        - returned
+        - checkout
 
   parameters:
     ResourceId:
